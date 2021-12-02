@@ -1,7 +1,7 @@
-repository: debjyotiSRoy/xmultitext
+repository: debjyotiSRoy/xcube
 output: web
-topnav_title: xmultitext
-site_title: xmultitext
+topnav_title: xcube
+site_title: xcube
 company_name: debjyoti.org
 description: The repository for Extreme Multi-Label Text Classification
 # Set to false to disable KaTeX math
