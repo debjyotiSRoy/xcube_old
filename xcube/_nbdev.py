@@ -6,8 +6,8 @@ index = {"say_hello": "00_core.ipynb"}
 
 modules = ["core.py"]
 
-doc_url = "https://debjyotiSRoy.github.io/xmultitext/"
+doc_url = "https://debjyotiSRoy.github.io/xcube/"
 
-git_url = "https://github.com/debjyotiSRoy/xmultitext/tree/master/"
+git_url = "https://github.com/debjyotiSRoy/xcube/tree/master/"
 
 def custom_doc_links(name): return None
