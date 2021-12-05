@@ -125,6 +125,7 @@ def main(
 
             def forward(self, input):
                 out, mask = input
+                # print(f'{out.shape = }')
                 x = masked_concat_pool(out, mask, self.bptt)
                 x = self.layers(x)
                 return x, out, out
@@ -147,6 +148,8 @@ def main(
 
             def forward(self, input):
                 out, mask = input
+                print(f'{out.shape = }')
+                
                 x = masked_concat_pool(out, mask, self.bptt)
 
                 # new
@@ -176,8 +179,8 @@ def main(
             def _init_param(self, *sz): 
                 return nn.Parameter(torch.randn(sz)/math.sqrt(sz[0]))
 
-        # decoder = OurPoolingLinearClassifier(layers, ps, bptt=seq_len, y_range=y_range)
-        decoder = OurPoolingAttentionClassifier(layers_attn, ps, bptt=seq_len, y_range=y_range) # attention
+        decoder = OurPoolingLinearClassifier(layers, ps, bptt=seq_len, y_range=y_range)
+        # decoder = OurPoolingAttentionClassifier(layers_attn, ps, bptt=seq_len, y_range=y_range) # attention
 
         model = SequentialRNN(encoder, decoder)
 
