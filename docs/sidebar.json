@@ -1,6 +1,8 @@
 {
   "xcube": {
     "Overview": "/",
-    "Core": "core.html"
+    "Core": "core.html",
+    "Core text modules": "text.models.core.html",
+    "Learner for the text application": "text.learner.html"
   }
 }
