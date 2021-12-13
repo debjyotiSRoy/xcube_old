@@ -33,7 +33,7 @@ def precision_at_k(yhat_raw, y, k=15):
 def main(
     lr:     Param("base Learning rate", float) = 1e-2,
     bs:     Param("Batch size", int) = 128,
-    epochs: Param("Number of epochs", int) = 1,
+    epochs: Param("Number of epochs", int) = 2,
     fp16:   Param("Use mixed precision training", store_true) = False,
     dump:   Param("Print model, don't train", int) = 0,
     runs:   Param("Number of times to repeat training", int) = 1,
