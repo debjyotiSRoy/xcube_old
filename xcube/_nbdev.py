@@ -3,14 +3,18 @@
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {"say_hello": "00_core.ipynb",
+         "Lin1BnDrop": "01_layers.ipynb",
          "SequentialRNN": "02_text.models.core.ipynb",
          "SentenceEncoder": "02_text.models.core.ipynb",
          "masked_concat_pool": "02_text.models.core.ipynb",
          "PoolingLinearClassifier": "02_text.models.core.ipynb",
+         "CAML2": "02_text.models.core.ipynb",
+         "CAML3": "02_text.models.core.ipynb",
          "get_text_classifier": "02_text.models.core.ipynb",
          "text_classifier_learner": "03_text.learner.ipynb"}
 
 modules = ["core.py",
+           "layers.py",
            "text/models/core.py",
            "text/learner.py"]
 
