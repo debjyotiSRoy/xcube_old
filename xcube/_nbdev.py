@@ -11,12 +11,15 @@ index = {"say_hello": "00_core.ipynb",
          "CAML2": "02_text.models.core.ipynb",
          "CAML3": "02_text.models.core.ipynb",
          "get_text_classifier": "02_text.models.core.ipynb",
-         "text_classifier_learner": "03_text.learner.ipynb"}
+         "text_classifier_learner": "03_text.learner.ipynb",
+         "PrecisionK": "04_metrics.ipynb",
+         "PrecisionR": "04_metrics.ipynb"}
 
 modules = ["core.py",
            "layers.py",
            "text/models/core.py",
-           "text/learner.py"]
+           "text/learner.py",
+           "metrics.py"]
 
 doc_url = "https://debjyotiSRoy.github.io/xcube/"
 

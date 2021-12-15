@@ -5,6 +5,7 @@ __all__ = ['SequentialRNN', 'SentenceEncoder', 'masked_concat_pool', 'PoolingLin
 
 # Cell
 from fastai.data.all import *
+from fastai.text.models.core import *
 from fastai.text.models.awdlstm import *
 from ...layers import *
 

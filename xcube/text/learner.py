@@ -4,7 +4,7 @@ __all__ = ['text_classifier_learner']
 
 # Cell
 from fastai.basics import *
-from fastai.text.all import *
+from fastai.text.learner import *
 from .models.core import *
 
 # Cell

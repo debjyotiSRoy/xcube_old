@@ -3,8 +3,7 @@
 __all__ = ['Lin1BnDrop']
 
 # Cell
-# from fastai.imports import *
-# from fastai.torch_imports import *
+from fastai.torch_imports import *
 from fastai.layers import *
 
 # Cell
