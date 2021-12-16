@@ -90,10 +90,11 @@ class CAML2(Module):
 # Cell
 class CAML3(Module):
     def __init__(self, dims, ps, bptt, y_range=None):
-        self.layers = Lin1BnDrop(dims[-1], dims[0], p=ps, act=None) # deb
+        self.lbs = dims[-1]
+        self.fts = dims[0]//3
+        self.layers = Lin1BnDrop(self.lbs, self.fts, p=ps, act=None) # deb
         self.bptt = bptt
-        self.emb_label = nn.Embedding(n_out, emb_sz) # deb
-
+        self.emb_label = nn.Embedding(self.lbs, self.fts) # deb
 
     def forward(self, input):
         out, _ = input
@@ -124,6 +125,7 @@ def get_text_classifier(arch, vocab_sz, n_class, seq_len=72, config=None, drop_m
     init = config.pop('init') if 'init' in config else None
     encoder = SentenceEncoder(seq_len, arch(vocab_sz, **config), pad_idx=pad_idx, max_len=max_len)
 #     decoder = PoolingLinearClassifier(layers, ps, bptt=seq_len, y_range=y_range)
-    decoder = CAML2(layers, ps, bptt=seq_len, y_range=y_range)
+#     decoder = CAML2(layers, ps, bptt=seq_len, y_range=y_range)
+    decoder = CAML3(layers, ps, bptt=seq_len, y_range=y_range)
     model = SequentialRNN(encoder, decoder)
     return model if init is None else model.apply(init)

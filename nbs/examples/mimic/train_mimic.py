@@ -22,12 +22,12 @@ def main(
     path = Path.cwd()
     path_model = path/'models'
 
-    dls = torch.load(path_model/'dls_clas_sample_new.pkl')
+    dls = torch.load(path_model/'dls_clas_full.pkl')
 
     for run in range(runs):
         pr(f'Rank[{rank_distrib()}] Run: {run}; epochs: {epochs}; lr: {lr}; bs: {bs}')
 
-        learn = text_classifier_learner(dls, AWD_LSTM, drop_mult=0.1, metrics=PrecisionK)
+        learn = text_classifier_learner(dls, AWD_LSTM, drop_mult=0.01, metrics=PrecisionK)
         learn = learn.load_encoder(path_model/'lm_finetuned')
 
         if dump: pr(learn.model); exit()
@@ -35,4 +35,23 @@ def main(
 
         # lr_min, lr_steep, lr_valley, lr_slide = learn.lr_find(suggest_funcs=(minimum, steep, valley, slide))
 
-        learn.fit_one_cycle(epochs, lr)
+        lr = 1e-1 * bs/128
+        learn.fit_one_cycle(1, lr, moms=(0.8,0.7,0.8), wd=0.1)
+
+        learn.freeze_to(-2)
+        lr /= 2
+        learn.fit_one_cycle(1, slice(lr/(2.6**4), lr), moms=(0.8,0.7,0.8), wd=0.1)
+
+
+        learn.freeze_to(-3)
+        lr /= 2
+        learn.fit_one_cycle(1, slice(lr/(2.6**4), lr), moms=(0.8,0.7,0.8), wd=0.1)
+
+
+        learn.unfreeze()
+        lr /= 5
+        learn.fit_one_cycle(5, slice(lr/(2.6**4), lr), moms=(0.8,0.7,0.8), wd=0.1)
+
+
+
+
