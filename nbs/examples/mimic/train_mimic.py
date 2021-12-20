@@ -44,7 +44,7 @@ def main(
     path_data = path/'data'
 
     # dls = torch.load(path_model/'dls_clas_sample.pkl')
-    dls = get_dls(path_data/'notes_labelled_sample.csv', path_model/'dls_lm_vocab.pkl')
+    dls = get_dls(path_data/'processed'/'notes_labelled_sample.csv', path_model/'dls_lm_vocab.pkl', bs=16)
 
     for run in range(runs):
         pr(f'Rank[{rank_distrib()}] Run: {run}; epochs: {epochs}; lr: {lr}; bs: {bs}')
@@ -62,17 +62,20 @@ def main(
 
         learn.freeze_to(-2)
         lr /= 2
-        learn.fit_one_cycle(1, slice(lr/(2.**1), lr), moms=(0.8,0.7,0.8), wd=0.001)
+        #learn.fit_one_cycle(1, slice(lr/(2.**1), lr), moms=(0.8,0.7,0.8), wd=0.001)
+        learn.fit_one_cycle(1, lr, moms=(0.8,0.7,0.8), wd=0.001)
 
 
         learn.freeze_to(-3)
         lr /= 2
-        learn.fit_one_cycle(1, slice(lr/(2.**1), lr), moms=(0.8,0.7,0.8), wd=0.001)
+        #learn.fit_one_cycle(1, slice(lr/(2.**1), lr), moms=(0.8,0.7,0.8), wd=0.001)
+        learn.fit_one_cycle(1, lr, moms=(0.8,0.7,0.8), wd=0.001)
 
 
         learn.unfreeze()
         lr /= 5
-        learn.fit_one_cycle(5, slice(lr/(2.**1), lr), moms=(0.8,0.7,0.8), wd=0.001)
+        #learn.fit_one_cycle(2, slice(lr/(2.**1), lr), moms=(0.8,0.7,0.8), wd=0.001)
+        learn.fit_one_cycle(2, lr, moms=(0.8,0.7,0.8), wd=0.001)
 
 
 
