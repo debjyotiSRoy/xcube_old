@@ -15,7 +15,8 @@ def splitter(df):
     valid = df.index[df['is_valid']].tolist()
     return train, valid
 
-def get_dls(data_file, lm_vocab_file, bs=128):
+def get_dls(data_file, lm_vocab_file, bs=128, workers=None):
+    workers=ifnone(workers, min(8, num_cpus()))
     df = pd.read_csv(data_file, dtype={'text': str, 'labels': str})
     df[['text', 'labels']] = df[['text', 'labels']].astype('str')
     lm_vocab = torch.load(lm_vocab_file)
@@ -28,7 +29,7 @@ def get_dls(data_file, lm_vocab_file, bs=128):
             get_y    = ColReader('labels', label_delim=';'),
             splitter = splitter
             )
-    return dblock.dataloaders(df, bs=bs)
+    return dblock.dataloaders(df, bs=bs, num_workers=workers)
 
 @call_parse
 def main(
@@ -44,7 +45,11 @@ def main(
     path_data = path/'data'
 
     # dls = torch.load(path_model/'dls_clas_sample.pkl')
-    dls = get_dls(path_data/'processed'/'notes_labelled_sample.csv', path_model/'dls_lm_vocab.pkl', bs=16)
+    if (path_model/'dls_clas_full_32.pkl').exists():
+        dls = torch.load(path_model/'dls_clas_full_32.pkl')
+    else:    
+        dls = get_dls(path_data/'notes_labelled.csv', path_model/'dls_lm_vocab.pkl', bs=bs)
+        torch.save(dls, path_model/'dls_clas_full_32.pkl')
 
     for run in range(runs):
         pr(f'Rank[{rank_distrib()}] Run: {run}; epochs: {epochs}; lr: {lr}; bs: {bs}')
@@ -55,27 +60,23 @@ def main(
         if dump: pr(learn.model); exit()
         if fp16: learn = learn.to_fp16()
 
-        # lr_min, lr_steep, lr_valley, lr_slide = learn.lr_find(suggest_funcs=(minimum, steep, valley, slide))
-
         lr = 1e-1 * bs/128
         learn.fit_one_cycle(1, lr, moms=(0.8,0.7,0.8), wd=0.001)
 
         learn.freeze_to(-2)
         lr /= 2
-        #learn.fit_one_cycle(1, slice(lr/(2.**1), lr), moms=(0.8,0.7,0.8), wd=0.001)
         learn.fit_one_cycle(1, lr, moms=(0.8,0.7,0.8), wd=0.001)
 
 
         learn.freeze_to(-3)
         lr /= 2
-        #learn.fit_one_cycle(1, slice(lr/(2.**1), lr), moms=(0.8,0.7,0.8), wd=0.001)
         learn.fit_one_cycle(1, lr, moms=(0.8,0.7,0.8), wd=0.001)
 
-
+        #learn = learn.load(path_model/'clas')
         learn.unfreeze()
         lr /= 5
-        #learn.fit_one_cycle(2, slice(lr/(2.**1), lr), moms=(0.8,0.7,0.8), wd=0.001)
-        learn.fit_one_cycle(2, lr, moms=(0.8,0.7,0.8), wd=0.001)
+        #import pdb; pdb.set_trace()
+        learn.fit_one_cycle(1, lr, moms=(0.8,0.7,0.8), wd=0.001, cbs=[SaveModelCallback(fname=path_model/'clas', at_end=True), ReduceLROnPlateau(monitor='valid_loss', min_delta=0.0001, patience=4)])
 
 
 
