@@ -138,7 +138,7 @@ def get_text_classifier(arch, vocab_sz, n_class, seq_len=72, config=None, drop_m
     ps = config.pop('output_p')
     init = config.pop('init') if 'init' in config else None
     encoder = SentenceEncoder(seq_len, arch(vocab_sz, **config), pad_idx=pad_idx, max_len=max_len)
-    decoder = OurPoolingLinearClassifier(layers, ps, bptt=seq_len, y_range=y_range)
-    # decoder = LabelAttentionClassifier(layers, ps, bptt=seq_len, y_range=y_range)
+    # decoder = OurPoolingLinearClassifier(layers, ps, bptt=seq_len, y_range=y_range)
+    decoder = LabelAttentionClassifier(layers, ps, bptt=seq_len, y_range=y_range)
     model = SequentialRNN(encoder, decoder)
     return model if init is None else model.apply(init)
