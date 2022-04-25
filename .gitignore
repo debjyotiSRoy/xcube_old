@@ -144,4 +144,5 @@ checklink/cookies.txt
 # nbdev xcube structure specific
 data/
 models/
+examples/**/xcube/
 
