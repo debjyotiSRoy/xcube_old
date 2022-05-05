@@ -18,6 +18,7 @@ class LinBnDrop(nn.Sequential):
         super().__init__(*layers)
 
 # Cell
+# not needed remove this later
 class Lin1BnDrop(nn.Sequential):
     "Module grouping `BatchNorm1d`, `Dropout` and a `Linear` layer with just one output feature"
     def __init__(self, n_in, n_out, bn=True, p=0., act=None, lin_first=False):
