@@ -157,6 +157,7 @@ class LabelAttentionClassifier2(Module):
         # for out_split in torch.split(out, 1, dim=1):
         # self.emb_label = nn.Parameter(self.emb_label * self.m1)
         attn_wgts = out @ self.emb_label.transpose(0, 1) # deb
+        # attn_wgts = sigmoid_range(attn_wgts, 0, 5.5) # did not help
         attn_wgts = F.softmax(attn_wgts, 1) # deb
         # attn_wgts = torch.nn.functional.log_softmax(attn_wgts, 1) # deb
         # attn_wgts = torch.log(attn_wgts)/(attn_wgts.sum(dim=1, keepdim=True) + 1e-12)
@@ -164,9 +165,11 @@ class LabelAttentionClassifier2(Module):
         # attn_wgts = torch.nn.functional.normalize(torch.log(attn_wgts), dim=1)
         ctx = attn_wgts.transpose(1,2) @ out # deb
 
+
         x = self.layers(ctx)
         # x = self.final_lin.weight.mul(x).sum(dim=2).add(self.final_lin.bias) #missed_deb
         x = (self.final_lin.weight * x).sum(dim=2) + self.final_lin.bias
+        # x = (self.final_lin.weight * x + self.final_lin.bias.unsqueeze(1)).sum(dim=2)
 
         # x = x.view(x.shape[0], x.shape[1])
         return x, out, out
