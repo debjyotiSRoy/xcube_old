@@ -2,7 +2,7 @@
 
 __all__ = ['SequentialRNN', 'SentenceEncoder', 'AttentiveSentenceEncoder', 'masked_concat_pool',
            'PoolingLinearClassifier', 'OurPoolingLinearClassifier', 'LabelAttentionClassifier',
-           'LabelAttentionClassifier2', 'get_text_classifier']
+           'LabelAttentionClassifier2', 'LabelAttentionClassifier3', 'get_text_classifier']
 
 # Cell
 from fastai.data.all import *
@@ -113,8 +113,8 @@ class OurPoolingLinearClassifier(Module):
 # Cell
 class LabelAttentionClassifier(Module):
     def __init__(self, dims, ps, bptt, y_range=None):
+        self.fts = dims[0]
         self.lbs = dims[-1]
-        self.fts = dims[0]//3
         self.layers = LinBnDrop(self.lbs, ln=False, p=ps, act=None) # deb
         self.bptt = bptt
         self.emb_label = Embedding(self.lbs, self.fts) # deb: note that size of the label embeddings need not be same as nh
@@ -133,9 +133,8 @@ class LabelAttentionClassifier(Module):
 class LabelAttentionClassifier2(Module):
     initrange=0.1
     def __init__(self, dims, ps, bptt, y_range=None):
+        self.fts = dims[0]
         self.lbs = dims[-1]
-        self.fts = dims[0]//3
-        # self.layers = LinBnDrop(self.lbs, self.fts, p=ps, act=None) # wrong_deb
 
         # ps = 0.1 # deb
         self.layers = LinBnDrop(self.lbs, ln=False, p=ps, act=None) # deb
@@ -152,7 +151,7 @@ class LabelAttentionClassifier2(Module):
         out, _ = input
         # x = masked_concat_pool(out, mask, self.bptt)
 
-        bs = out.shape[0]
+        # bs = out.shape[0]
         # ctx = out.new_zeros((bs, self.lbs, self.fts))
         # for out_split in torch.split(out, 1, dim=1):
         # self.emb_label = nn.Parameter(self.emb_label * self.m1)
@@ -175,6 +174,29 @@ class LabelAttentionClassifier2(Module):
         return x, out, out
 
 # Cell
+class LabelAttentionClassifier3(Module):
+    initrange=0.1
+    def __init__(self, dims, ps, bptt, y_range=None):
+        self.fts = dims[0]
+        self.lbs = dims[-1]
+
+        # ps = 0.1 # deb
+        self.layers = LinBnDrop(self.lbs, ln=False, p=ps, act=None) # deb
+        self.bptt = bptt
+        self.attn = XMLAttention(self.lbs, self.fts)
+        self.final_lin = nn.Linear(self.fts, self.lbs)
+        self.final_lin.weight.data.uniform_(-self.initrange, self.initrange)
+        self.final_lin.bias.data.zero_()
+
+    def forward(self, input):
+        out, _ = input
+        ctx = self.attn(out)
+        x = self.layers(ctx)
+        x = (self.final_lin.weight * x).sum(dim=2) + self.final_lin.bias
+
+        return x, out, out
+
+# Cell
 def get_text_classifier(arch, vocab_sz, n_class, seq_len=72, config=None, drop_mult=1., lin_ftrs=None,
                        ps=None, pad_idx=1, max_len=72*20, y_range=None):
     "Create a text classifier from `arch` and its `config`, maybe `pretrained`"
@@ -185,12 +207,12 @@ def get_text_classifier(arch, vocab_sz, n_class, seq_len=72, config=None, drop_m
     if lin_ftrs is None: lin_ftrs = [50]
     if ps is None: ps = [0.1]*len(lin_ftrs) # not required if not using OurPoolingLinearClasifier
 #     layers = [config[meta['hid_name']] * 3] + lin_ftrs + [n_class]  # required if using fastai's PoolingLinearClassifier
-    layers = [config[meta['hid_name']] * 3] + [n_class]
+    layers = [config[meta['hid_name']]] + [n_class]
 #     ps = [config.pop('output_p')] + ps
     ps = config.pop('output_p')
     init = config.pop('init') if 'init' in config else None
     encoder = AttentiveSentenceEncoder(seq_len, arch(vocab_sz, **config), pad_idx=pad_idx, max_len=max_len)
     # decoder = OurPoolingLinearClassifier(layers, ps, bptt=seq_len, y_range=y_range)
-    decoder = LabelAttentionClassifier2(layers, ps, bptt=seq_len, y_range=y_range)
+    decoder = LabelAttentionClassifier3(layers, ps, bptt=seq_len, y_range=y_range)
     model = SequentialRNN(encoder, decoder)
     return model if init is None else model.apply(init)

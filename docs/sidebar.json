@@ -2,7 +2,9 @@
   "xcube": {
     "Overview": "/",
     "Core": "core.html",
+    "Layers": "layers.html",
     "Core text modules": "text.models.core.html",
-    "Learner for the text application": "text.learner.html"
+    "Learner for the text application": "text.learner.html",
+    "Metrics": "metrics.html"
   }
 }
