@@ -9,6 +9,9 @@ from fastai.torch_core import *
 from fastai.layers import *
 
 # Cell
+from fastai.text.models.awdlstm import EmbeddingDropout, RNNDropout
+
+# Cell
 class LinBnDrop(nn.Sequential):
     "Module grouping `BatchNorm1d`, `Dropout` and `Linear` layers"
     def __init__(self, n_in, n_out=None, bn=True, ln=True, p=0., act=None, lin_first=False):
@@ -22,10 +25,15 @@ class LinBnDrop(nn.Sequential):
 # Cell
 class XMLAttention(Module):
     "Compute label specific attention weights for each token in a sequence"
-    def __init__(self, n_lbs, emb_sz):
+    def __init__(self, n_lbs, emb_sz, embed_p):
+         store_attr('n_lbs,emb_sz,embed_p')
          self.lbs_emb = nn.Embedding(n_lbs, emb_sz)
+         self.lbs_emb_dp = EmbeddingDropout(self.lbs_emb, embed_p)
          self.lbs_emb.weight.data.normal_(0, 0.01)
+         self.input_dp = RNNDropout(0.02)
 
     def forward(self, x):
-        attn_wgts = F.softmax(x @ self.lbs_emb.weight.transpose(0,1), dim=1)
+        lbs_emb = self.lbs_emb(torch.arange(self.n_lbs, device=x.device))
+        # x_dp = self.input_dp(x)
+        attn_wgts = F.softmax(x @ lbs_emb.transpose(0,1), dim=1)
         return attn_wgts.transpose(1,2) @ x

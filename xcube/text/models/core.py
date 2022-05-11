@@ -182,17 +182,16 @@ class LabelAttentionClassifier3(Module):
 
         # ps = 0.1 # deb
         self.layers = LinBnDrop(self.lbs, ln=False, p=ps, act=None) # deb
-        self.bptt = bptt
-        self.attn = XMLAttention(self.lbs, self.fts)
+        self.attn = XMLAttention(self.lbs, self.fts, 0.0)
         self.final_lin = nn.Linear(self.fts, self.lbs)
-        self.final_lin.weight.data.uniform_(-self.initrange, self.initrange)
-        self.final_lin.bias.data.zero_()
+        init_default(self.final_lin,
+                     func=partial(torch.nn.init.uniform_, a=-self.initrange, b=self.initrange))
 
     def forward(self, input):
         out, _ = input
         ctx = self.attn(out)
         x = self.layers(ctx)
-        x = (self.final_lin.weight * x).sum(dim=2) + self.final_lin.bias
+        x = (self.final_lin.weight * ctx).sum(dim=2) + self.final_lin.bias
 
         return x, out, out
 
