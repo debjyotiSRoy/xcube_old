@@ -6,6 +6,8 @@ Gemfile.lock
 .gitconfig
 *.bak
 *.log
+*.pkl
+*.pth
 *~
 ~*
 _tmp*

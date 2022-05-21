@@ -2,7 +2,10 @@
 
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
-index = {"plot_reduction": "00_utils.ipynb",
+index = {"namestr": "00_utils.ipynb",
+         "list_files": "00_utils.ipynb",
+         "get_paths": "00_utils.ipynb",
+         "plot_reduction": "00_utils.ipynb",
          "LinBnDrop": "01_layers.ipynb",
          "XMLAttention": "01_layers.ipynb",
          "SequentialRNN": "02_text.models.core.ipynb",
