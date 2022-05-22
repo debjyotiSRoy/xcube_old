@@ -29,7 +29,10 @@ def list_files(startpath):
 
 # Cell
 def get_paths(path, prefix=None):
-    "with `path` as basedir, makes data and models dir and the relevant pathlib objects inside them"
+    """
+    with `path` as basedir, makes data and models dir and
+    returns a dictionary of relevant pathlib objects
+    """
     path_data = path/'data'
     path_model = path/'models'
 

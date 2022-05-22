@@ -18,6 +18,7 @@ index = {"namestr": "00_utils.ipynb",
          "LabelAttentionClassifier2": "02_text.models.core.ipynb",
          "LabelAttentionClassifier3": "02_text.models.core.ipynb",
          "get_text_classifier": "02_text.models.core.ipynb",
+         "TextLearner": "03_text.learner.ipynb",
          "text_classifier_learner": "03_text.learner.ipynb",
          "PrecisionK": "04_metrics.ipynb",
          "PrecisionR": "04_metrics.ipynb"}
