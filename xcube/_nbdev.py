@@ -4,7 +4,7 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {"namestr": "00_utils.ipynb",
          "list_files": "00_utils.ipynb",
-         "get_paths": "00_utils.ipynb",
+         "make_paths": "00_utils.ipynb",
          "plot_reduction": "00_utils.ipynb",
          "LinBnDrop": "01_layers.ipynb",
          "XMLAttention": "01_layers.ipynb",
@@ -18,16 +18,20 @@ index = {"namestr": "00_utils.ipynb",
          "LabelAttentionClassifier2": "02_text.models.core.ipynb",
          "LabelAttentionClassifier3": "02_text.models.core.ipynb",
          "get_text_classifier": "02_text.models.core.ipynb",
+         "match_lbs": "03_text.learner.ipynb",
          "TextLearner": "03_text.learner.ipynb",
          "text_classifier_learner": "03_text.learner.ipynb",
          "PrecisionK": "04_metrics.ipynb",
-         "PrecisionR": "04_metrics.ipynb"}
+         "PrecisionR": "04_metrics.ipynb",
+         "CollabLearner": "05_collab.ipynb",
+         "collab_learner": "05_collab.ipynb"}
 
 modules = ["utils.py",
            "layers.py",
            "text/models/core.py",
            "text/learner.py",
-           "metrics.py"]
+           "metrics.py",
+           "collab.py"]
 
 doc_url = "https://debjyotiSRoy.github.io/xcube/"
 
