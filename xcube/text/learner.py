@@ -6,6 +6,7 @@ __all__ = ['match_collab', 'load_collab_keys', 'TextLearner', 'text_classifier_l
 from fastai.basics import *
 from fastai.text.learner import *
 from fastai.callback.rnn import *
+from fastai.text.models.awdlstm import *
 from .models.core import *
 
 # Cell
@@ -18,7 +19,7 @@ def _get_label_vocab(dls:DataLoaders) -> list:
 # Cell
 def match_collab(
     old_wgts:dict, # Embedding weights of the colab model
-    collab_vocab:list, # Vocabulary of labels used for colab pre-training
+    collab_vocab:dict, # Vocabulary of `token` and `label` used for colab pre-training
     lbs_vocab:list # Current labels vocabulary
 ) -> dict:
     "Convert the label embedding in `old_wgts` to go from `old_vocab` in colab to `lbs_vocab`"
@@ -43,11 +44,14 @@ def match_collab(
 # Cell
 def load_collab_keys(
     model, # Model architecture
-    wgts:dict # Collab weights
+    wgts:dict # Model weights
 ) -> tuple:
-    "Load only collab `wgts` in `model`, keeping the rest as is"
-    pass
-
+    "Load only collab `wgts` (`i_weight` and `i_bias`) in `model`, keeping the rest as is"
+    sd = model.state_dict()
+    lbs_emb, i_weight = sd.get('1.attn.lbs_emb.weight', None), wgts.get('i_weight.weight', None)
+    if lbs_emb and i_weight: lbs_emb.data = i_weight.data
+    if '1.attn.lbs_emb_dp.emb.weight' in sd:
+        sd['1.attn.lbs_emb_dp.emb.weight'] = i_weight.data.clone()
 
 # Cell
 @delegates(Learner.__init__)
