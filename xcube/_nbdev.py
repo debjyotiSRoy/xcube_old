@@ -24,6 +24,8 @@ index = {"namestr": "00_utils.ipynb",
          "text_classifier_learner": "03_text.learner.ipynb",
          "PrecisionK": "04_metrics.ipynb",
          "PrecisionR": "04_metrics.ipynb",
+         "match_embeds": "05_collab.ipynb",
+         "load_pretrained_keys": "05_collab.ipynb",
          "CollabLearner": "05_collab.ipynb",
          "collab_learner": "05_collab.ipynb"}
 

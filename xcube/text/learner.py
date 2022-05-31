@@ -10,6 +10,13 @@ from fastai.text.models.awdlstm import *
 from .models.core import *
 
 # Cell
+def _get_text_vocab(dls:DataLoaders) -> list:
+    "Get text vocabulary from `DataLoaders`"
+    vocab = dls.vocab
+    if isinstance(vocab, L): vocab = vocab[0]
+    return vocab
+
+# Cell
 def _get_label_vocab(dls:DataLoaders) -> list:
     "Get label vocabulary from `DataLoaders`"
     vocab = dls.vocab
@@ -25,7 +32,7 @@ def match_collab(
     "Convert the label embedding in `old_wgts` to go from `old_vocab` in colab to `lbs_vocab`"
     bias, wgts = old_wgts.get('i_bias.weight', None), old_wgts.get('i_weight.weight')
     wgts_m = wgts.mean(0)
-    new_wgts = wgts.new_zeros(len(lbs_vocab), wgts.size(1))
+    new_wgts = wgts.new_zeros((len(lbs_vocab), wgts.size(1)))
     if bias is not None:
         bias_m = bias.mean(0)
         new_bias = bias.new_zeros((len(lbs_vocab), 1))
@@ -48,10 +55,13 @@ def load_collab_keys(
 ) -> tuple:
     "Load only collab `wgts` (`i_weight` and `i_bias`) in `model`, keeping the rest as is"
     sd = model.state_dict()
-    lbs_emb, i_weight = sd.get('1.attn.lbs_emb.weight', None), wgts.get('i_weight.weight', None)
-    if lbs_emb and i_weight: lbs_emb.data = i_weight.data
-    if '1.attn.lbs_emb_dp.emb.weight' in sd:
-        sd['1.attn.lbs_emb_dp.emb.weight'] = i_weight.data.clone()
+    lbs_weight, i_weight = sd.get('1.attn.lbs_weight.weight', None), wgts.get('i_weight.weight', None)
+    lbs_bias, i_bias = sd.get('1.attn.lbs_weight.bias', None), wgts.get('i_bias.weight', None)
+    if lbs_weight is not None and i_weight is not None: lbs_weight.data = i_weight.data
+    if lbs_bias is not None and i_bias is not None: lbs_bias.data = i_bias.data
+    if '1.attn.lbs_weight_dp.emb.weight' in sd:
+        sd['1.attn.lbs_weight_dp.emb.weight'] = i_weight.data.clone()
+    return model.load_state_dict(sd)
 
 # Cell
 @delegates(Learner.__init__)
@@ -76,6 +86,21 @@ class TextLearner(Learner):
         encoder = get_model(self.model)[0]
         if hasattr(encoder, 'module'): encoder = encoder.module
         torch.save(encoder.state_dict(), join_path_file(file, self.path/self.model_dir, ext='.pth'))
+
+    @delegates(save_model)
+    def save(self,
+        file:str, # Filename for the state_directory of the model
+        **kwargs
+    ):
+        """
+        Save model and optimizer state (if `with_opt`) to `self.path/self.model_dir/file`
+        Save `self.dls.vocab` to `self.path/self.model_dir/clas_vocab.pkl`
+        """
+        model_file = join_path_file(file, self.path/self.model_dir, ext='.pth')
+        vocab_file = join_path_file(file+'_vocab', self.path/self.model_dir, ext='.pkl')
+        save_model(model_file, self.model, getattr(self, 'opt', None), **kwargs)
+        save_pickle(vocab_file, self.dls.vocab)
+        return model_file
 
     def load_encoder(self,
         file:str, # Filename of the saved encoder
@@ -121,38 +146,24 @@ class TextLearner(Learner):
         load_model_text(file, self.model, self.opt, device=device, **kwargs)
         return self
 
-    def load_colab(self,
+    def load_collab(self,
         wgts_fname:str, # Filename of the saved collab model
-        colab_vocab_fname:str, # Saved Vocabulary of collab labels in pickle format
+        collab_vocab_fname:str, # Saved Vocabulary of collab labels in pickle format
         model=None # Model to load parameters from, defaults to `Learner.model`
-        # device:(int,str,torch.device)=None # Device used to load, defaults to `dls` device
     ):
         "Load the label embeddings learned by collab model`, and adapt it to the label vocabulary."
-        # decoder = get_model(self.model)[1]
-        # if device is None: device = self.dls.device
-        # if hasattr(decoder, module): decoder = decoder.module
-        # attn = decoder.attn
-        # wgts_fname = join_path_file(wgts_fname, self.path/self.model_dir, ext='.pkl')
-
-        colab_vocab = load_pickle(colab_vocab_fname)
+        collab_vocab = load_pickle(collab_vocab_fname)
         lbs_vocab = _get_label_vocab(self.dls)
         distrib_barrier()
         wgts = torch.load(wgts_fname, map_location=lambda storage,loc: storage)
         if 'model' in wgts: wgts = wgts['model'] #Just in case the pretrained model was saved with an optimizer
-        wgts = _match_lbs(wgts, colab_vocab, lbs_vocab)
-        load_ignore_keys(decoder.attn, clean_raw_keys(wgts))
+        wgts, _ = match_collab(wgts, collab_vocab, lbs_vocab)
+        load_collab_keys(self.model if model is None else model, wgts)
         self.freeze()
         return self
 
 # Cell
 from .models.core import _model_meta
-
-# Cell
-def _get_text_vocab(dls:DataLoaders) -> list:
-    "Get text vocabulary from `DataLoaders`"
-    vocab = dls.vocab
-    if isinstance(vocab, L): vocab = vocab[0]
-    return vocab
 
 # Cell
 @delegates(Learner.__init__)
@@ -176,7 +187,7 @@ def text_classifier_learner(dls, arch, seq_len=72, config=None, backwards=False,
         except IndexError: print(f'The model in {model_path} is incomplete, download again'); raise
         learn = learn.load_pretrained(*fnames, model=learn.model[0])
     if collab:
-        try: fnames = [list(learn.path.glob(f'**/*collab*.{ext}'))[0] for ext in ['pth', 'pkl']]
+        try: fnames = [list(learn.path.glob(f'**/collab/*collab*.{ext}'))[0] for ext in ['pth', 'pkl']]
         except IndexError: print(f'The collab model in {learn.path} is incomplete, re-train it!'); raise
         learn = learn.load_colab(*fnames, model=learn.model[1])
     learn.freeze()

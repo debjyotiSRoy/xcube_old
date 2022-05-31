@@ -38,6 +38,7 @@ def make_paths(path, prefix=None):
 
     path_model.mkdir(exist_ok=True)
     path_data.mkdir(exist_ok=True)
+    (path_model/'collab').mkdir(exist_ok=True)
 
     data = path_data/(prefix+'.csv')
     dls_lm_path, dls_lm_r_path = path_model/f"{prefix}_dls_lm.pkl", path_model/f"{prefix}_dls_lm_r.pkl"
@@ -47,8 +48,8 @@ def make_paths(path, prefix=None):
     dsets_clas_path, dsets_clas_r_path = path_model/f"{prefix}_dset_clas.pkl", path_model/f"{prefix}_dset_clas_r.pkl"
     dls_clas_path, dls_clas_r_path = path_model/f"{prefix}_dls_clas.pkl", path_model/f"{prefix}_dls_clas_r.pkl"
     clas_path, clas_r_path = path_model/f"{prefix}_clas.pth", path_model/f"{prefix}_clas_r.pth"
-    dls_colab_path = path_model/f"{prefix}_dls_colab.pkl"
-    collab_path = path_model/f"{prefix}_collab.pth"
+    dls_collab_path = path_model/f"{prefix}_dls_collab.pkl"
+    collab_path = path_model/'collab'/f"{prefix}_collab.pth"
     plist = [path, path_data, path_model,
              data,
              dls_lm_path, dls_lm_r_path,
@@ -58,7 +59,7 @@ def make_paths(path, prefix=None):
              dsets_clas_path, dsets_clas_r_path,
              dls_clas_path, dls_clas_r_path,
              clas_path, clas_r_path,
-             dls_colab_path,
+             dls_collab_path,
              collab_path]
     pdir = {}
     for o in plist:  pdir[namestr(o, locals())[0]] = o
