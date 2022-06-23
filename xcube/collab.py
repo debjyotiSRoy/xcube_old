@@ -16,16 +16,11 @@ def match_embeds(
     Convert the `users` and `items` (possibly saved as `0.module.encoder.weight` and `1.attn.lbs_weight.weight` respectively)
     embedding in `old_wgts` to go from `old_vocab` to `new_vocab`
     """
-    import pdb; pdb.set_trace()
     u_bias, u_wgts = None, old_wgts.get('0.module.encoder.weight')
-    print(f"{u_wgts.shape = }")
     i_bias, i_wgts = old_wgts.get('1.attn.lbs_bias.weight', None), old_wgts.get('1.attn.lbs_weight.weight')
-    print(f"{i_wgts.shape = }")
     u_wgts_m, i_wgts_m = u_wgts.mean(0), i_wgts.mean(0)
     new_u_wgts = u_wgts.new_zeros((len(new_vocab['token']), u_wgts.size(1)))
-    print(f"{new_u_wgts.shape = }")
     new_i_wgts = i_wgts.new_zeros((len(new_vocab['label']), i_wgts.size(1)))
-    print(f"{new_i_wgts.shape = }")
     if u_bias is not None:
         u_bias_m = u_bias.mean(0)
         new_u_bias = u_bias.new_zeros((len(new_vocab['token']), 1))
@@ -63,11 +58,9 @@ def load_pretrained_keys(
     "Load relevant pretrained `wgts` in `model"
     sd = model.state_dict()
     u_wgts, u_bias = wgts.get('0.module.encoder.weight', None), None
-    print(f"inside load_keys{u_wgts.shape = }")
     if u_wgts is not None: sd['u_weight.weight'].data = u_wgts.data
     if u_bias is not None: sd['u_bias.weight'].data = u_bias.data
     i_wgts, i_bias = wgts.get('1.attn.lbs_weight.weight', None), wgts.get('1.attn.lbs_bias.weight', None)
-    print(f"inside load{i_wgts.shape = }")
     if i_wgts is not None: sd['i_weight.weight'].data = i_wgts.data
     if i_bias is not None: sd['i_bias.weight'].data = i_bias.data
     return model.load_state_dict(sd)
