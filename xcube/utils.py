@@ -50,6 +50,8 @@ def make_paths(path, prefix=None):
     clas_path, clas_r_path = path_model/f"{prefix}_clas.pth", path_model/f"{prefix}_clas_r.pth"
     collab_bootst_path = path_model/f"{prefix}_tok_lbl_info.pkl"
     collab_data_path = path_data/f"{prefix}_tok_lbl.ft"
+    collab_tok_path = path_data/f"{prefix}_tok.ft"
+    collab_lbl_path = path_data/f"{prefix}_lbl.ft"
     dls_collab_path = path_model/f"{prefix}_dls_collab.pkl"
     collab_path = path_model/'collab'/f"{prefix}_collab.pth"
     plist = [path, path_data, path_model,
@@ -63,6 +65,8 @@ def make_paths(path, prefix=None):
              clas_path, clas_r_path,
              collab_bootst_path,
              collab_data_path,
+             collab_tok_path,
+             collab_lbl_path,
              dls_collab_path,
              collab_path]
     pdir = {}
