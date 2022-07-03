@@ -5,6 +5,7 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 index = {"namestr": "00_utils.ipynb",
          "list_files": "00_utils.ipynb",
          "make_paths": "00_utils.ipynb",
+         "plot_hist": "00_utils.ipynb",
          "plot_reduction": "00_utils.ipynb",
          "LinBnDrop": "01_layers.ipynb",
          "XMLAttention": "01_layers.ipynb",
