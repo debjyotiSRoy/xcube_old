@@ -28,14 +28,16 @@ index = {"namestr": "00_utils.ipynb",
          "match_embeds": "05_collab.ipynb",
          "load_pretrained_keys": "05_collab.ipynb",
          "CollabLearner": "05_collab.ipynb",
-         "collab_learner": "05_collab.ipynb"}
+         "collab_learner": "05_collab.ipynb",
+         "ListToTensor": "06_data.transforms.ipynb"}
 
 modules = ["utils.py",
            "layers.py",
            "text/models/core.py",
            "text/learner.py",
            "metrics.py",
-           "collab.py"]
+           "collab.py",
+           "data/transforms.py"]
 
 doc_url = "https://debjyotiSRoy.github.io/xcube/"
 
