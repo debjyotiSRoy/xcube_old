@@ -54,6 +54,7 @@ def make_paths(path, prefix=None):
     collab_tok_path = path_data/f"{prefix}_tok.ft"
     collab_lbl_path = path_data/f"{prefix}_lbl.ft"
     dls_collab_path = path_model/f"{prefix}_dls_collab.pkl"
+    dls_learn_rank_path = path_model/f"{prefix}_dls_learn_rank.pkl"
     collab_path = path_model/'collab'/f"{prefix}_collab.pth"
     plist = [path, path_data, path_model, 
              data, 
@@ -69,6 +70,7 @@ def make_paths(path, prefix=None):
              collab_tok_path,
              collab_lbl_path,
              dls_collab_path,
+             dls_learn_rank_path,
              collab_path]
     pdir = {}
     for o in plist:  pdir[namestr(o, locals())[0]] = o
