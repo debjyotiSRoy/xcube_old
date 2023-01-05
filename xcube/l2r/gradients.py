@@ -5,6 +5,7 @@ __all__ = ['rank_loss2', 'rank_loss3', 'loss_fn', 'loss_fn2']
 
 # %% ../../nbs/08_l2r.gradients.ipynb 2
 from fastai.torch_imports import *
+from ..imports import *
 
 # %% ../../nbs/08_l2r.gradients.ipynb 9
 def _summation(sl, ij):
@@ -35,7 +36,8 @@ def _idcg(xb, k=None, gain_fn=None):
     
     return idcg, idcg_at_k
 
-def rank_loss2(preds, xb, sigma=0.5, lambrank=False, gain_fn=None):
+# %% ../../nbs/08_l2r.gradients.ipynb 10
+def rank_loss2(preds, xb, sigma=0.5, lambrank=False, gain_fn=None, k=6):
     # In the following `ij` is essentially the set $I$
     sl = xb.shape[2]
     ij = torch.as_tensor(np.fromiter(itertools.combinations(np.arange(sl), 2), dtype=np.dtype((int,2))),
@@ -60,7 +62,7 @@ def rank_loss2(preds, xb, sigma=0.5, lambrank=False, gain_fn=None):
     gain_i, gain_j = ( torch.pow(2.0, si), torch.pow(2.0, sj) ) if gain_fn == 'exp' else ( torch.pow(si, 3.0), torch.pow(sj, 3.0) ) # cubic
     signs = torch.sign(si - sj)
     delta_dcg = torch.abs((gain_i - gain_j) * (dfi - dfj))
-    idcg, idcg_at_k = _idcg(xb, k=6, gain_fn=gain_fn)
+    idcg, idcg_at_k = _idcg(xb, k=k, gain_fn=gain_fn)
     delta_ndcg_at_k = delta_dcg / idcg_at_k.unsqueeze(-1)
     
     lambda_ij = sigma * (  0.5 * (1 - signs) -  1/(1 + exp_ij) )
@@ -73,6 +75,7 @@ def rank_loss2(preds, xb, sigma=0.5, lambrank=False, gain_fn=None):
     
     return srtd_preds, lambda_i
 
+# %% ../../nbs/08_l2r.gradients.ipynb 11
 def rank_loss3(preds, xb, sigma=0.5, lambrank=False, gain_fn=None, k=6):
     with torch.no_grad():
         # pdb.set_trace()
@@ -98,7 +101,7 @@ def rank_loss3(preds, xb, sigma=0.5, lambrank=False, gain_fn=None, k=6):
         lambda_update = lambda_update.sum(dim=-1, keepdim=True)
     return preds, lambda_update
 
-# %% ../../nbs/08_l2r.gradients.ipynb 11
+# %% ../../nbs/08_l2r.gradients.ipynb 13
 def loss_fn(preds, xb, sigma=0.5):
     
     srtd_relvs, srtd_idxs = xb[:, :, :, -1].sort(descending=True)
