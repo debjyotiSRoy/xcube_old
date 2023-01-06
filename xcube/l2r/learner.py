@@ -100,7 +100,7 @@ class Learner:
             for self.epoch,_ in enumerate(mb):
                 pdf.loc[self.epoch] = pd.Series(dict(zip(columns, self.one_epoch(True, mb, **kwargs) + self.one_epoch(False, mb, **kwargs))))
                 current = pdf.loc[self.epoch][best[0]]
-                if best is not None and current > best[1]: 
+                if best is not None and current >= best[1]: 
                     best[1] = current
                     self.save(best[2])
                 # clear_output(wait=True)
@@ -112,7 +112,7 @@ class Learner:
             display_df(pdf)
         except CancelFitException: pass 
     
-    def validate(self, **kwargs):
+    def validate(self, *args, **kwargs):
         columns=['val_loss', 'val_ndcg (candi. 32)', 'val ndcg@6 (candi. 32)', 'val_acc']
         pdf = pd.DataFrame(columns=columns)
         pdf.index.name = 'epoch'
