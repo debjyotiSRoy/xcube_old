@@ -99,6 +99,9 @@ def rank_loss3(preds, xb, sigma=0.5, lambrank=False, gain_fn=None, k=6):
         lambda_update = sigma * (  0.5 * (1 - S_ij) -  1/exp_ij )
         if lambrank: lambda_update *= delta_ndcg_at_k 
         lambda_update = lambda_update.sum(dim=-1, keepdim=True)
+        # free memory
+        del preds_t, preds_rank, preds_rank_t, exp_ij, rel_diff, gain_diff, decay_diff, idcg, idcg_at_k, delta_ndcg_at_k, pos_pairs, neg_pairs, S_ij
+        import gc; gc.collect(); torch.cuda.empty_cache()
     return preds, lambda_update
 
 # %% ../../nbs/08_l2r.gradients.ipynb 13

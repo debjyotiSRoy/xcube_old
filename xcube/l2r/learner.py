@@ -26,6 +26,11 @@ class Learner:
             srtd_preds, lambda_i = self.grad_func(self.preds, self.xb)
             srtd_preds.backward(lambda_i)
             
+            # free memory
+            lambda_i = None
+            import gc; gc.collect()
+            torch.cuda.empty_cache()
+            
             ## tracking gradients
             for name,param in self.model.named_parameters():
             # import pdb; pdb.set_trace()
@@ -99,10 +104,11 @@ class Learner:
         try:
             for self.epoch,_ in enumerate(mb):
                 pdf.loc[self.epoch] = pd.Series(dict(zip(columns, self.one_epoch(True, mb, **kwargs) + self.one_epoch(False, mb, **kwargs))))
-                current = pdf.loc[self.epoch][best[0]]
-                if best is not None and current >= best[1]: 
-                    best[1] = current
-                    self.save(best[2])
+                if best is not None: 
+                    current = pdf.loc[self.epoch][best[0]]
+                    if current >= best[1]:
+                        best[1] = current
+                        self.save(best[2])
                 # clear_output(wait=True)
                 # pdb.set_trace()
                 display_df(pdf.iloc[[self.epoch]])
