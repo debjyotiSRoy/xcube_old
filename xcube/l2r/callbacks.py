@@ -19,18 +19,31 @@ class TrackResults(Callback):
     
     def before_fit(self): self.losses_full, self.grads_full, self.metrics_full = [], defaultdict(list), defaultdict(list) 
     
-    def before_epoch(self): self.losses, self.ndcgs, self.ndcgs_at_6, self.accs = [], [], [], []
+    def before_train(self): self._initialise_metrics()
     
-    def after_epoch(self):
-        if self.model.training: self.losses_full.extend(self.losses)
+    def before_validate(self): self._initialise_metrics()
+        
+    def after_train(self):
+        self.losses_full.extend(self.losses)
+        log = self._compute_epoch_mean()
+        if self.train_metrics:
+            self.metrics_full['trn'].append(log)
+        print(self.epoch, self.model.training, *log)
+                
+    def after_validate(self):
+        log = self._compute_epoch_mean()
+        if hasattr(self, 'metrics_full'):
+            self.metrics_full['val'].append(log)
+        print(self.epoch if hasattr(self, 'epoch') else 0, self.model.training, *log)
+            
+    def _compute_epoch_mean(self):
         _li = [self.losses, self.ndcgs, self.ndcgs_at_6, self.accs]
         _li = [torch.stack(o) if o else torch.Tensor() for o in _li] 
         [self.losses, self.ndcgs, self.ndcgs_at_6, self.accs] = _li
         log = [round(o.mean().item(), 4) if o.sum() else "NA" for o in _li]
-        if self.model.training:
-            if self.train_metrics: self.metrics_full['trn'].append(log)
-        else: self.metrics_full['val'].append(log)
-        print(self.epoch, self.model.training, *log)
+        return log
+    
+    def _initialise_metrics(self): self.losses, self.ndcgs, self.ndcgs_at_6, self.accs = [], [], [], []
     
     def after_batch(self):
         with torch.no_grad():
@@ -61,7 +74,10 @@ class ProgressBarCallback(Callback):
         
     def before_epoch(self):
         if getattr(self, 'mbar', False): self.mbar.update(self.epoch)
-        self._launch_pbar()
+        
+    def before_train(self): self._launch_pbar()
+    
+    def before_validate(self): self._launch_pbar()
         
     def _launch_pbar(self):
         self.pbar = progress_bar(self.dl, parent=getattr(self, 'mbar', None), leave=False)
@@ -70,7 +86,10 @@ class ProgressBarCallback(Callback):
     def after_batch(self):
         self.pbar.update(self.iter_num+1)
     
-    def after_epoch(self):
+    def after_train(self):
+        self.pbar.on_iter_end()
+        
+    def after_validate(self):
         self.pbar.on_iter_end()
         
     def after_fit(self):
@@ -85,8 +104,8 @@ class Monitor(Callback):
     def __init__(self, monitor='ndcg_at_6', comp=None, min_delta=0., reset_on_fit=False):
         if comp is None: comp = np.greater
         if comp == np.less: min_delta *= -1
-        store_attr()
-        self.best = None
+        # store_attr()
+        self.monitor,self.comp,self.min_delta,self.reset_on_fit,self.best= monitor,comp,min_delta,reset_on_fit,None
        
     def before_fit(self):
         if self.reset_on_fit or self.best is None: self.best = float('inf') if self.comp == np.less else -float('inf')
@@ -97,18 +116,33 @@ class Monitor(Callback):
         val = self.track_results.metrics_full.get('val')[-1][self.idx]
         if self.comp(val - self.min_delta, self.best): self.best, self.new_best, = val, True
         else: self.new_best = False
-    
 
 # %% ../../nbs/11_l2r.callbacks.ipynb 9
 class SaveCallBack(Monitor):
     order = Monitor.order+1
-    def __init__(self, fname, monitor='ndcg_at_6', comp=None, min_delta=0., reset_on_fit=False):
+    def __init__(self, 
+        fname, 
+        monitor='ndcg_at_6', 
+        comp=None, 
+        min_delta=0., 
+        reset_on_fit=False,
+        best=None,
+    ):
         super().__init__(monitor=monitor, comp=comp, min_delta=min_delta, reset_on_fit=reset_on_fit)
         self.last_saved_path = None
-        store_attr()
+        store_attr('fname')
         
+    @property
+    def best(self): return self._best
+    @best.setter    
+    def best(self, b): self._best = b
+    
+    
     def after_epoch(self):
         super().after_epoch()
         if self.new_best:
             print(f'Better model found at epoch {self.epoch} with {self.monitor} value: {self.best}.')
             self.learn.save(self.fname)
+    
+    # def after_fit(self):
+        # if self.best_at_end: self.learn.load(self.fname)
