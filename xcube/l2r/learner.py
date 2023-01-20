@@ -51,13 +51,9 @@ class L2RLearner:
         self('after_batch')
         
     def one_epoch(self, train, **kwargs):
-        # self('before_epoch')
         self.model.training = train
         self.dl = self.dls.train if train else self.dls.valid
         (self._do_epoch_validate, self._do_epoch_train)[self.model.training](**kwargs)
-        # for self.iter_num, self.xb in enumerate(self.dl):
-            # self.one_batch(**kwargs)
-        # self('after_epoch')
         
     def _do_epoch_train(self, *args, **kwargs):
         self('before_train')
