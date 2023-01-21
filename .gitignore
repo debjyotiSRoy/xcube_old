@@ -148,3 +148,5 @@ data/
 models/
 nbs/**/xcube
 
+_docs/
+_proc/
